@@ -164,6 +164,7 @@ export default function AccordionView({ dataSource }: AccordionViewProps) {
               category={cat}
               entries={filtered[cat]}
               highlight={search.trim()}
+              defaultOpen={dataSource === 'troubleshoot'}
             />
           )
         )}
