@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { ORIENT } from '@/data/orient';
+import TemplateBlock from '@/components/kb/TemplateBlock';
 
 const REPLY_TEMPLATE = `Dear [Customer Name],
 
@@ -25,15 +26,6 @@ const KIND_LABELS: Record<string, { label: string; color: string; icon: string }
 
 export default function OrientationView() {
   const [search, setSearch] = useState('');
-  const [copied, setCopied] = useState(false);
-
-  async function copyTemplate() {
-    try {
-      await navigator.clipboard.writeText(REPLY_TEMPLATE);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch {}
-  }
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -55,17 +47,7 @@ export default function OrientationView() {
       {/* Reply template */}
       <div className="rounded-lg border border-border bg-card p-4 space-y-2">
         <p className="text-xs text-muted-foreground font-medium">Quick Reply Template</p>
-        <div className="relative">
-          <div className="text-sm text-foreground whitespace-pre-wrap bg-background rounded-lg p-3 border border-border leading-relaxed">
-            {REPLY_TEMPLATE}
-          </div>
-          <button
-            onClick={copyTemplate}
-            className="absolute top-2 right-2 text-xs px-2 py-1 rounded bg-primary text-primary-foreground hover:brightness-110 transition-all"
-          >
-            {copied ? 'Copied' : 'Copy'}
-          </button>
-        </div>
+        <TemplateBlock template={REPLY_TEMPLATE} />
         <p className="text-xs text-muted-foreground">Remember to attach the orientation reference image showing the √/x sides.</p>
       </div>
 
