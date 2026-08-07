@@ -41,6 +41,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-accent-orange: var(--accent-orange);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -60,7 +61,7 @@
   --card-foreground: oklch(0.18 0.02 260);
   --popover: oklch(0.985 0 260);
   --popover-foreground: oklch(0.18 0.02 260);
-  --primary: oklch(0.546 0.15 270);
+  --primary: #0d3d82;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.92 0.01 260);
   --secondary-foreground: oklch(0.28 0.02 260);
@@ -68,26 +69,27 @@
   --muted-foreground: oklch(0.5 0.02 260);
   --accent: oklch(0.92 0.01 260);
   --accent-foreground: oklch(0.28 0.02 260);
+  --accent-orange: #ea5504;
   --destructive: oklch(0.577 0.245 27.325);
   --success: oklch(0.627 0.194 149.214);
   --warning: oklch(0.681 0.162 75.834);
   --border: oklch(0.85 0.01 260);
   --input: oklch(0.85 0.01 260);
-  --ring: oklch(0.546 0.15 270);
+  --ring: #ea5504;
   --radius: 0.625rem;
-  --chart-1: oklch(0.546 0.15 270);
-  --chart-2: oklch(0.5 0.12 260);
+  --chart-1: #0d3d82;
+  --chart-2: #ea5504;
   --chart-3: oklch(0.4 0.08 260);
   --chart-4: oklch(0.35 0.06 260);
   --chart-5: oklch(0.3 0.04 260);
   --sidebar: oklch(0.972 0.005 260);
   --sidebar-foreground: oklch(0.18 0.02 260);
-  --sidebar-primary: oklch(0.546 0.15 270);
+  --sidebar-primary: #0d3d82;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.92 0.01 260);
   --sidebar-accent-foreground: oklch(0.28 0.02 260);
   --sidebar-border: oklch(0.85 0.01 260);
-  --sidebar-ring: oklch(0.546 0.15 270);
+  --sidebar-ring: #ea5504;
 }
 
 /* Dark mode — Smart Home / IoT tech palette */
@@ -98,7 +100,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.19 0.03 260);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.627 0.194 149.214);
+  --primary: #4d7fc2;
   --primary-foreground: oklch(0.16 0.025 260);
   --secondary: oklch(0.28 0.02 260);
   --secondary-foreground: oklch(0.985 0 0);
@@ -106,25 +108,26 @@
   --muted-foreground: oklch(0.65 0.02 260);
   --accent: oklch(0.28 0.02 260);
   --accent-foreground: oklch(0.985 0 0);
+  --accent-orange: #f2823c;
   --destructive: oklch(0.704 0.191 22.216);
   --success: oklch(0.627 0.194 149.214);
   --warning: oklch(0.681 0.162 75.834);
   --border: oklch(0.35 0.025 260);
   --input: oklch(0.35 0.025 260);
-  --ring: oklch(0.627 0.194 149.214);
-  --chart-1: oklch(0.627 0.194 149.214);
-  --chart-2: oklch(0.546 0.15 270);
+  --ring: #f2823c;
+  --chart-1: #4d7fc2;
+  --chart-2: #f2823c;
   --chart-3: oklch(0.45 0.1 260);
   --chart-4: oklch(0.35 0.05 260);
   --chart-5: oklch(0.28 0.03 260);
   --sidebar: oklch(0.19 0.03 260);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.627 0.194 149.214);
+  --sidebar-primary: #4d7fc2;
   --sidebar-primary-foreground: oklch(0.16 0.025 260);
   --sidebar-accent: oklch(0.28 0.02 260);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.35 0.025 260);
-  --sidebar-ring: oklch(0.627 0.194 149.214);
+  --sidebar-ring: #f2823c;
 }
 
 @layer base {
