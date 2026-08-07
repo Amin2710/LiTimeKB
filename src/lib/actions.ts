@@ -2,6 +2,7 @@
 
 import { auth } from './auth';
 import { supabase } from './supabase';
+import { countStats } from './sla';
 
 async function getUserId() {
   const session = await auth();
@@ -220,6 +221,49 @@ export async function upsertCasesByOrder(imported: Array<{
   }
 
   return { created, updated };
+}
+
+/**
+ * Just the counts behind the navbar badge. Selects two columns rather than the
+ * whole case list, since this runs on every tab, not only the tracker.
+ */
+export async function getCaseCounts(): Promise<{ active: number; overdue: number }> {
+  const userId = await getUserId();
+  if (!userId) return { active: 0, overdue: 0 };
+
+  const { data } = await supabase
+    .from('cases')
+    .select('stage, stage_since')
+    .eq('user_id', userId);
+
+  return countStats(data ?? []);
+}
+
+/**
+ * Records a search that returned nothing, so whoever maintains the KB can see
+ * what agents look for and fail to find.
+ *
+ * Requires a `search_misses` table (see README). Deliberately swallows every
+ * error: a missing table or a failed insert must never break searching.
+ */
+export async function logSearchMiss(query: string, source: string): Promise<void> {
+  const trimmed = query.trim();
+  if (trimmed.length < 3 || trimmed.length > 120) return;
+
+  const userId = await getUserId();
+  if (!userId) return;
+
+  try {
+    await supabase.from('search_misses').insert({
+      id: crypto.randomUUID(),
+      user_id: userId,
+      query: trimmed.toLowerCase(),
+      source,
+      created: Date.now(),
+    });
+  } catch {
+    // Telemetry is best-effort.
+  }
 }
 
 export async function saveTheme(theme: string) {

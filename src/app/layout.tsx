@@ -5,6 +5,10 @@ import SessionProvider from "@/components/layout/SessionProvider";
 import ThemeProvider from "@/components/layout/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import Navbar from "@/components/layout/Navbar";
+import FavoritesProvider from "@/components/layout/FavoritesProvider";
+import CaseStatsProvider from "@/components/layout/CaseStatsProvider";
+import PlaceholderProvider from "@/components/kb/PlaceholderProvider";
+import { CommandPaletteProvider } from "@/components/search/CommandPalette";
 import "./globals.css";
 
 const workSans = Work_Sans({
@@ -40,10 +44,18 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider>
             <ToastProvider>
-              <Navbar />
-              <main className="flex-1 w-full max-w-[1180px] mx-auto px-[22px] py-6">
-                {children}
-              </main>
+              <FavoritesProvider>
+                <CaseStatsProvider>
+                  <PlaceholderProvider>
+                    <CommandPaletteProvider>
+                      <Navbar />
+                      <main className="flex-1 w-full max-w-[1180px] mx-auto px-[22px] py-6">
+                        {children}
+                      </main>
+                    </CommandPaletteProvider>
+                  </PlaceholderProvider>
+                </CaseStatsProvider>
+              </FavoritesProvider>
             </ToastProvider>
           </ThemeProvider>
         </SessionProvider>
