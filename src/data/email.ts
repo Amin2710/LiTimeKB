@@ -15,18 +15,13 @@ const raw: EmailData = {
     },
     {
       "issue": "Not defective - goodwill offer OR customer pays return shipping",
-      "template": "Dear Customer,\n\nThank you for informing us of your wish to return the [PRODUCT]. We're sorry to hear it didn't meet your expectations.\n\nWe're happy to assist with the return and will provide a prepaid return label for your convenience. Please note that for this type of return, the return shipping cost will be deducted from your refund. Once we receive the item, we'll proceed with the next step promptly.\n\nAlternatively, since the product is still fully functional, we'd like to offer you a partial compensation of [COMPENSATION_AMOUNT], allowing you to keep the product.\n\nPlease let us know which option you prefer.\n\nBest regards,",
-      "note": "POLICY: Non-defective returns — we ALWAYS send a prepaid label; the return shipping cost is deducted from the refund. Offer the goodwill 'keep it' compensation first to retain the customer."
+      "template": "Dear customer,\n\nIf the battery is returned for personal reasons, we're afraid that the $XXXXXXXXXXXXXXX return shipping fee may be borne by you.\n\nWould you mind asking whether any of your friends/relatives/neighbors would need the battery?\n\nIf luckily they do, we would like to offer a 10% refund on your order if you could resell or transfer the battery to them in any way that you prefer. If you still want to return the battery, we will provide the return labels for you to return the battery (this normally costs less than you send them back yourself).\n\nIf you confirm that you need to return the battery, we'll send you the return label the next working day once we receive your confirmation.\n\nWe will partially refund your order once UPS/FedEx has received the package.\n\nThank you for your cooperation!\n\nLooking forward to your reply.\n\nBest wishes,",
+      "note": "POLICY: For personal-reason (non-defective) returns, first offer a 10% partial refund if the customer can resell/transfer the battery to someone they know instead of returning it. If they still want to return it, send the label the next working day after confirmation; partial refund is issued once UPS/FedEx receives the package."
     },
     {
       "issue": "Not defective - start return label request",
       "template": "Dear Customer,\n\nThank you for your message. We'll gladly help you return the [PRODUCT]. To process the return, please follow these steps:\n\nProduct photos: Please send clear photos of the [PRODUCT] and its packaging. If the package is unopened, a full photo of the package is helpful.\nReturn label: Once we receive your reply with the required information, we'll send a prepaid return label within 1-2 business days. Please note that for this type of return, the return shipping cost will be deducted from your refund.\nPackaging: Please ensure the [PRODUCT] is properly packaged with all accessories and original packaging, including manuals or additional components.\n\nOnce the item arrives at our warehouse, we'll proceed with your [refund or replacement] accordingly.\n\nThank you for your cooperation.\n\nSincerely,",
       "note": "POLICY: Non-defective return — we ALWAYS send a prepaid label; the return shipping cost is deducted from the refund (not charged separately)."
-    },
-    {
-      "issue": "Defective product - return process",
-      "template": "Dear Customer,\n\nThank you for your message. We're sorry to hear you're experiencing an issue with the [PRODUCT]. We'll gladly assist with the return and resolve this as quickly as possible. To proceed, please follow the steps below:\n\nProduct photos: Please send clear photos of the product and its packaging. If the package is unopened, a full photo of the outer packaging is helpful.\nReturn label: Once we receive your reply with the required information, we'll provide a prepaid return label within 1-2 business days.\nPackaging: Please ensure the product is securely packed with all original accessories, packaging, manuals, and additional components.\n\nOnce the item arrives at our warehouse and has been inspected, we'll proceed with your [refund / replacement] accordingly.\n\nThank you for your cooperation.\n\nBest regards,",
-      "note": "POLICY: Defective - prepaid return label provided."
     },
     {
       "issue": "Return label applying - confirmation",
@@ -40,7 +35,7 @@ const raw: EmailData = {
     },
     {
       "issue": "Sending return label (US)",
-      "template": "Hello [NAME],\n\nHope you are doing well. You may find the dedicated return label for this [PRODUCT] return in the attachment.\n\nPlease ensure all original accessories and components are included when returning the [PRODUCT]; missing items will incur corresponding deductions from your refund. Kindly notify us in advance if you have any special needs, and we'll offer timely assistance.\n\nPlease follow the steps below for smooth processing:\n1. Print and attach the provided return label. Cover all old shipping labels fully, and confirm the return address and tracking number are clear and accurate.\n2. Ship out the package within 10 calendar days.\n3. Securely pack the [PRODUCT]: protect all components, add sufficient cushioning, and use the original packaging or a sturdy outer box for safe transit.\n4. Reply to this email with two photos: a clear close-up of the serial number label and an overall photo to confirm no external damage.\n5. Drop off your package with the carrier. Tracking updates after scanning, and our warehouse will complete inspection upon receipt.\n\nThis process usually takes 7-10 business days. We'll arrange your follow-up solution promptly after inspection.\n\nThank you for your cooperation. Feel free to contact us anytime.\n\nBest regards,",
+      "template": "Hello [NAME],\n\nHope you are doing well. You may find the dedicated return label for this [PRODUCT] return in the attachment.\n\nPlease ensure all original accessories and components are included when returning the [PRODUCT]; missing items will incur corresponding deductions from your refund. Kindly notify us in advance if you have any special needs, and we'll offer timely assistance.\n\nPlease follow the steps below for smooth processing:\n1. Print and attach the provided return label. Cover all old shipping labels fully, and confirm the return address and tracking number are clear and accurate.\n2. Ship out the package within 10 calendar days.\n3. Securely pack the [PRODUCT]: protect all components, add sufficient cushioning, and use the original packaging or a sturdy outer box for safe transit.\n4. Drop off your package with the carrier. Tracking updates after scanning, and our warehouse will complete inspection upon receipt.\n\nThis process usually takes 7-10 business days. We'll arrange your follow-up solution promptly after inspection.\n\nThank you for your cooperation. Feel free to contact us anytime.\n\nBest regards,",
       "note": "US: ship within 10 calendar days. Missing items deducted from refund. ~7-10 business days total."
     },
     {
@@ -57,6 +52,11 @@ const raw: EmailData = {
       "issue": "Item returned - replacement issued",
       "template": "Dear Customer,\n\nWe'd like to confirm that we've successfully received your returned item at our warehouse. A replacement order has now been issued and is being prepared for processing.\n\nAs soon as the new item ships, we'll immediately provide you with the tracking number so you can monitor delivery.\n\nWe appreciate your patience and understanding.\n\nBest regards,",
       "note": ""
+    },
+    {
+      "issue": "Cx is asking for refund/replacement after order is returned",
+      "template": "Hello,\n\nThank you for your information.\n\nI have not yet received a message from my colleague in the warehouse regarding the return shipment. I will keep a close eye on the situation.\n\nAs soon as I receive the message, I will refund/replacement the amount to you.\n\nFor further questions, I am always available to assist.\n\nBest regards,",
+      "note": "Use when the customer follows up asking about refund/replacement status but the warehouse hasn't yet confirmed receipt of the returned item."
     }
   ],
   "Shipping": [
@@ -151,8 +151,8 @@ const raw: EmailData = {
     },
     {
       "issue": "VAT - invalid number",
-      "template": "Dear Customer,\n\nThank you for providing your VAT number. We've checked it in the validation system; however, it currently appears invalid or inactive for VAT verification.\n\nWe kindly recommend contacting your local tax authority to verify whether the number is correctly registered and activated for EU/intra-community VAT transactions. Once it becomes valid, please let us know and we'll continue the VAT-free setup.\n\nThank you for your understanding.\n\nBest regards,",
-      "note": ""
+      "template": "Dear Customer,\n\nWe were unable to validate your VAT number through the official VIES system. Please double-check the number and provide a corrected version.\n\nA screenshot of the failed validation is attached for your reference.\n\nLet us know if you need assistance.\n\nBest regards,",
+      "note": "Attach a screenshot of the failed VIES validation attempt when sending this."
     }
   ],
   "Email - BMS": [
@@ -236,6 +236,11 @@ const raw: EmailData = {
       "issue": "Upright only (no sides, terminals up only)",
       "template": "Dear Customer,\n\nThank you for your message. For this specific battery model, the installation orientation is limited to ensure safe operation and long-term performance:\n- The battery must be installed upright with terminals facing upward only.\n- Installation on the side is not allowed.\n- Installation with terminals facing downward is not permitted.\n\nThis restriction is based on the internal structure and safety design of this model. If you have any further questions, please contact us anytime.\n\nBest regards,",
       "note": "Model-specific - confirm before sending."
+    },
+    {
+      "issue": "Battery orientation - installation reference image",
+      "template": "Dear [Customer Name],\n\nThank you for your message.\n\nPlease refer to the attached image for proper placement of the battery:\n\n\"√\" indicates the side that may be placed face down.\n\n\"x\" indicates the side that should not be placed face down.\n\nThe image provides a clear visual reference to ensure safe and correct installation. Should you have any further questions, please do not hesitate to contact us.\n\nBest regards,",
+      "note": "Attach the orientation reference image showing the √/x sides."
     }
   ],
   "Email - General": [
@@ -252,6 +257,11 @@ const raw: EmailData = {
     {
       "issue": "Product discontinued",
       "template": "Dear Customer,\n\nThank you for your message and your interest in our products. We'd like to inform you that [PRODUCT_NAME] is unfortunately no longer produced by our company and is therefore no longer available for sale. We apologize for any inconvenience. Please feel free to contact us for further assistance.\n\nBest regards,",
+      "note": ""
+    },
+    {
+      "issue": "Customer asking for quotations for bulk orders",
+      "template": "For European business orders requiring invoices for bank transfers (not placed via PayPal/credit card on our official website), please contact our dedicated sales team directly at:\n\nEmail: sales08@litime.com\n\nThey will assist you with your order and provide any necessary support regarding invoicing, bulk pricing, or other business-specific requests.\n\nI have already forwarded your email to him for prompt follow-up. Should you need further assistance in the meantime, please feel free to contact them directly.\n\nBest regards,",
       "note": ""
     }
   ]

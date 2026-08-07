@@ -3,6 +3,20 @@
 import { useState, useMemo } from 'react';
 import { ORIENT } from '@/data/orient';
 
+const REPLY_TEMPLATE = `Dear [Customer Name],
+
+Thank you for your message.
+
+Please refer to the attached image for proper placement of the battery:
+
+"√" indicates the side that may be placed face down.
+
+"x" indicates the side that should not be placed face down.
+
+The image provides a clear visual reference to ensure safe and correct installation. Should you have any further questions, please do not hesitate to contact us.
+
+Best regards,`;
+
 const KIND_LABELS: Record<string, { label: string; color: string; icon: string }> = {
   flex: { label: 'Flexible', color: 'text-success bg-success/10 border-success/30', icon: 'M20 6L9 17l-5-5' },
   partial: { label: 'Partial', color: 'text-warning bg-warning/10 border-warning/30', icon: 'M5 12h14' },
@@ -11,6 +25,15 @@ const KIND_LABELS: Record<string, { label: string; color: string; icon: string }
 
 export default function OrientationView() {
   const [search, setSearch] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  async function copyTemplate() {
+    try {
+      await navigator.clipboard.writeText(REPLY_TEMPLATE);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {}
+  }
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -27,6 +50,23 @@ export default function OrientationView() {
       {/* Warning banner */}
       <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-sm text-destructive leading-relaxed">
         <strong>Important:</strong> Never install ANY battery with the terminals facing down. This applies to all models regardless of orientation flexibility.
+      </div>
+
+      {/* Reply template */}
+      <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+        <p className="text-xs text-muted-foreground font-medium">Quick Reply Template</p>
+        <div className="relative">
+          <div className="text-sm text-foreground whitespace-pre-wrap bg-background rounded-lg p-3 border border-border leading-relaxed">
+            {REPLY_TEMPLATE}
+          </div>
+          <button
+            onClick={copyTemplate}
+            className="absolute top-2 right-2 text-xs px-2 py-1 rounded bg-primary text-primary-foreground hover:brightness-110 transition-all"
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">Remember to attach the orientation reference image showing the √/x sides.</p>
       </div>
 
       {/* Search */}
