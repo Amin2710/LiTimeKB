@@ -45,7 +45,7 @@ export default function CollapsibleSection({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-primary shrink-0"
+              className="text-accent-orange shrink-0"
             >
               <path d={icon} />
             </svg>

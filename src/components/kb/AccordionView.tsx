@@ -200,7 +200,7 @@ function BatteryDimensionsPanel() {
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors"
         aria-expanded={open}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary shrink-0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-orange shrink-0">
           <path d={icon} />
         </svg>
         <span className="text-sm font-semibold text-foreground">Battery Dimensions</span>
