@@ -15,7 +15,7 @@ const raw: EmailData = {
     },
     {
       "issue": "Not defective - goodwill offer OR customer pays return shipping",
-      "template": "Dear customer,\n\nIf the battery is returned for personal reasons, we're afraid that the $XXXXXXXXXXXXXXX return shipping fee may be borne by you.\n\nWould you mind asking whether any of your friends/relatives/neighbors would need the battery?\n\nIf luckily they do, we would like to offer a 10% refund on your order if you could resell or transfer the battery to them in any way that you prefer. If you still want to return the battery, we will provide the return labels for you to return the battery (this normally costs less than you send them back yourself).\n\nIf you confirm that you need to return the battery, we'll send you the return label the next working day once we receive your confirmation.\n\nWe will partially refund your order once UPS/FedEx has received the package.\n\nThank you for your cooperation!\n\nLooking forward to your reply.\n\nBest wishes,",
+      "template": "Dear customer,\n\nIf the battery is returned for personal reasons, we're afraid that the [RETURN_SHIPPING_FEE] return shipping fee may be borne by you.\n\nWould you mind asking whether any of your friends/relatives/neighbors would need the battery?\n\nIf luckily they do, we would like to offer a 10% refund on your order if you could resell or transfer the battery to them in any way that you prefer. If you still want to return the battery, we will provide the return labels for you to return the battery (this normally costs less than you send them back yourself).\n\nIf you confirm that you need to return the battery, we'll send you the return label the next working day once we receive your confirmation.\n\nWe will partially refund your order once UPS/FedEx has received the package.\n\nThank you for your cooperation!\n\nLooking forward to your reply.\n\nBest wishes,",
       "note": "POLICY: For personal-reason (non-defective) returns, first offer a 10% partial refund if the customer can resell/transfer the battery to someone they know instead of returning it. If they still want to return it, send the label the next working day after confirmation; partial refund is issued once UPS/FedEx receives the package."
     },
     {
@@ -55,7 +55,7 @@ const raw: EmailData = {
     },
     {
       "issue": "Cx is asking for refund/replacement after order is returned",
-      "template": "Hello,\n\nThank you for your information.\n\nI have not yet received a message from my colleague in the warehouse regarding the return shipment. I will keep a close eye on the situation.\n\nAs soon as I receive the message, I will refund/replacement the amount to you.\n\nFor further questions, I am always available to assist.\n\nBest regards,",
+      "template": "Hello,\n\nThank you for your information.\n\nI have not yet received a message from my colleague in the warehouse regarding the return shipment. I will keep a close eye on the situation.\n\nAs soon as I receive the message, I will arrange your [refund / replacement].\n\nFor further questions, I am always available to assist.\n\nBest regards,",
       "note": "Use when the customer follows up asking about refund/replacement status but the warehouse hasn't yet confirmed receipt of the returned item."
     }
   ],
@@ -87,12 +87,12 @@ const raw: EmailData = {
     },
     {
       "issue": "Logistics dept update needed",
-      "template": "Dear Customer,\n\nThank you for your message. We've received your request regarding the shipment status of your order [ORDER_NUMBER / TRACKING_NUMBER]. We'll check the latest update directly with our logistics department and get back to you as soon as possible with accurate information.\n\nWe appreciate your patience while we review this.\n\nBest regards,",
+      "template": "Dear Customer,\n\nThank you for your message. We've received your request regarding the shipment status of your order [ORDER_OR_TRACKING_NUMBER]. We'll check the latest update directly with our logistics department and get back to you as soon as possible with accurate information.\n\nWe appreciate your patience while we review this.\n\nBest regards,",
       "note": ""
     },
     {
       "issue": "Shipment stuck / lost",
-      "template": "Dear Customer,\n\nThank you for your message. We've noted that your shipment [ORDER_NUMBER / TRACKING_NUMBER] is currently showing no recent tracking updates and appears delayed or temporarily stuck in transit.\n\nPlease rest assured the parcel has not been returned to us. We're checking the situation directly with the carrier and our logistics department. As soon as we have more information, we'll update you immediately.\n\nWe kindly ask for your patience while this is investigated.\n\nBest regards,",
+      "template": "Dear Customer,\n\nThank you for your message. We've noted that your shipment [ORDER_OR_TRACKING_NUMBER] is currently showing no recent tracking updates and appears delayed or temporarily stuck in transit.\n\nPlease rest assured the parcel has not been returned to us. We're checking the situation directly with the carrier and our logistics department. As soon as we have more information, we'll update you immediately.\n\nWe kindly ask for your patience while this is investigated.\n\nBest regards,",
       "note": ""
     },
     {
@@ -256,7 +256,7 @@ const raw: EmailData = {
     },
     {
       "issue": "Product discontinued",
-      "template": "Dear Customer,\n\nThank you for your message and your interest in our products. We'd like to inform you that [PRODUCT_NAME] is unfortunately no longer produced by our company and is therefore no longer available for sale. We apologize for any inconvenience. Please feel free to contact us for further assistance.\n\nBest regards,",
+      "template": "Dear Customer,\n\nThank you for your message and your interest in our products. We'd like to inform you that [PRODUCT] is unfortunately no longer produced by our company and is therefore no longer available for sale. We apologize for any inconvenience. Please feel free to contact us for further assistance.\n\nBest regards,",
       "note": ""
     },
     {
