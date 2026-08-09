@@ -6,54 +6,34 @@ import { getCases, createCase, updateCaseStage, updateCaseNote, deleteCase, upse
 import * as XLSX from 'xlsx';
 import type { CaseData } from '@/lib/actions';
 import { useToast } from '@/components/ui/Toast';
+import { useCaseStats } from '@/components/layout/CaseStatsProvider';
+import { PLATFORMS, STAGES, TYPES, fmtAge, isOverdue } from '@/lib/sla';
 
-const STAGES = [
-  'Label requested',
-  'Label ready — send to CX',
-  'Sent to CX — awaiting return',
-  'Product returned — confirmed',
-  'Refund/replacement requested',
-  'Replacement — awaiting tracking',
-  'Tracking sent',
-  'Awaiting cancellation',
-  'Cancelled — issue manual refund',
-  'Waiting on tech support',
-  'Waiting on follower reply',
-  'Done',
-];
+const CACHE_KEY = 'litime-cases-cache';
 
-const SLA: Record<string, number> = {
-  'Label requested': 48,
-  'Label ready — send to CX': 24,
-  'Sent to CX — awaiting return': 168,
-  'Product returned — confirmed': 24,
-  'Refund/replacement requested': 48,
-  'Replacement — awaiting tracking': 72,
-  'Awaiting cancellation': 72,
-  'Cancelled — issue manual refund': 24,
-  'Waiting on tech support': 48,
-  'Waiting on follower reply': 48,
-};
-
-const TYPES = ['Return → Replacement', 'Return → Refund', 'Cancellation', 'Tech support', 'Other'];
-const PLATFORMS = ['Amazon', 'eBay', 'Shopify', 'Other'];
-
-function fmtAge(ms: number) {
-  const h = ms / 3.6e6;
-  if (h < 1) return Math.max(1, Math.round(h * 60)) + 'm';
-  if (h < 48) return Math.round(h) + 'h';
-  return Math.round(h / 24) + 'd';
+function readCache(): CaseData[] | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    // Corrupt or unavailable cache — fall through to a normal load.
+    return null;
+  }
 }
 
-function isOverdue(c: CaseData) {
-  if (c.stage === 'Done') return false;
-  const lim = SLA[c.stage];
-  if (!lim) return false;
-  return (Date.now() - c.stage_since) > lim * 3.6e6;
+function writeCache(data: CaseData[]) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  } catch {
+    // Non-fatal.
+  }
 }
 
 export default function CaseTracker() {
   const { data: session } = useSession();
+  const { setFromCases } = useCaseStats();
   const [cases, setCases] = useState<CaseData[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('active');
@@ -62,39 +42,53 @@ export default function CaseTracker() {
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
   const recentlyDeleted = useRef<CaseData | null>(null);
   const { toast } = useToast();
-  const CACHE_KEY = 'litime-cases-cache';
+
+  // Ages are shown relative to now, so the clock has to advance on its own —
+  // otherwise a case only looks overdue once something else forces a re-render.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const loadCases = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getCases();
       setCases(data);
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      writeCache(data);
     } catch {
       toast.error('Failed to load cases');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
-    if (session?.user) {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (cached) {
-        try {
-          setCases(JSON.parse(cached));
-          setLoading(false);
-          // Silent background refresh — no loading flash
-          getCases().then(data => {
-            setCases(data);
-            sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
-          }).catch(() => {});
-          return;
-        } catch { /* corrupt cache — fall through to normal load */ }
-      }
-      loadCases();
+    if (!session?.user) return;
+
+    const cached = readCache();
+    if (cached) {
+      setCases(cached);
+      setLoading(false);
+      // Silent background refresh — no loading flash.
+      getCases()
+        .then((data) => {
+          setCases(data);
+          writeCache(data);
+        })
+        .catch(() => {});
+      return;
     }
+
+    loadCases();
   }, [session, loadCases]);
+
+  // Keep the navbar badge in step with what the tracker is showing, rather than
+  // making the provider re-fetch the same rows.
+  useEffect(() => {
+    setFromCases(cases);
+  }, [cases, setFromCases]);
 
   async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -239,18 +233,18 @@ export default function CaseTracker() {
   }
 
   const active = cases.filter(c => c.stage !== 'Done').length;
-  const overdue = cases.filter(isOverdue).length;
+  const overdue = cases.filter((c) => isOverdue(c, now)).length;
 
   let rows = cases.slice();
   if (filter === 'active') rows = rows.filter(c => c.stage !== 'Done');
-  else if (filter === 'overdue') rows = rows.filter(isOverdue);
+  else if (filter === 'overdue') rows = rows.filter((c) => isOverdue(c, now));
   else if (filter === 'done') rows = rows.filter(c => c.stage === 'Done');
   if (query) {
     const q = query.toLowerCase();
     rows = rows.filter(c => (c.order_number || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q));
   }
   rows.sort((a, b) => {
-    const oa = isOverdue(a) ? 0 : 1, ob = isOverdue(b) ? 0 : 1;
+    const oa = isOverdue(a, now) ? 0 : 1, ob = isOverdue(b, now) ? 0 : 1;
     if (oa !== ob) return oa - ob;
     return a.stage_since - b.stage_since;
   });
@@ -389,7 +383,7 @@ export default function CaseTracker() {
       ) : (
         <div className="space-y-2.5">
           {rows.map(c => {
-            const od = isOverdue(c);
+            const od = isOverdue(c, now);
             return (
               <div
                 key={c.id}
@@ -425,7 +419,7 @@ export default function CaseTracker() {
                     }`}
                     title="Time in current stage"
                   >
-                    {od ? '⚠ ' : ''}{fmtAge(Date.now() - c.stage_since)}
+                    {od ? '⚠ ' : ''}{fmtAge(now - c.stage_since)}
                   </div>
                 </div>
 
@@ -464,7 +458,7 @@ export default function CaseTracker() {
 
                 {/* Footer */}
                 <div className="text-[10.5px] text-muted-foreground mt-2 italic">
-                  opened {fmtAge(Date.now() - c.created)} ago
+                  opened {fmtAge(now - c.created)} ago
                   {c.history && c.history.length > 0 && ' · ' + c.history[c.history.length - 1]}
                 </div>
               </div>

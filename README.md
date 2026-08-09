@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LiTime CS Knowledge Base
 
-## Getting Started
+Internal knowledge base and case tracker for LiTime / AmpereTime customer support agents.
+Next.js App Router + Supabase + NextAuth.
 
-First, run the development server:
+## Running locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create `.env.local` with:
 
-## Learn More
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `AUTH_SECRET` | NextAuth JWT signing secret |
 
-To learn more about Next.js, take a look at the following resources:
+`next build` fails at the page-data step without these — `src/lib/supabase.ts` reads them at module load.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Supabase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Existing tables: `cases`, `user_preferences`.
+Existing RPCs: `verify_agent_password(p_email, p_password)`, `change_agent_password(p_agent_id, p_old_password, p_new_password)`.
 
-## Deploy on Vercel
+### `search_misses` (required for search-gap reporting)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Searches that return no results are recorded so whoever maintains the KB can see
+what agents look for and fail to find. The app degrades silently if this table is
+absent — searching still works, nothing is logged.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```sql
+create table if not exists search_misses (
+  id uuid primary key,
+  user_id uuid not null,
+  query text not null,
+  source text not null,
+  created bigint not null
+);
+
+create index if not exists search_misses_query_idx on search_misses (query);
+create index if not exists search_misses_created_idx on search_misses (created desc);
+```
+
+Most-wanted missing content:
+
+```sql
+select query, count(*) as hits, max(created) as last_seen
+from search_misses
+group by query
+order by hits desc
+limit 50;
+```
+
+## Agent shortcuts
+
+| Key | Action |
+| --- | --- |
+| `Ctrl/⌘ + K` | Search everything — KB, templates, troubleshooting, error codes, SKUs |
+| `/` | Focus the current tab's search box |
+| `↑` `↓` | Step through results |
+| `Enter` | Expand the highlighted entry |
+| `c` | Copy the highlighted entry's template |
+| `Esc` | Clear the search, then drop the cursor |
+
+## Reply templates
+
+Templates carry fill-in markers (`[NAME]`, `[PRODUCT]`, `[refund or replacement]`,
+`$XXXX`). The fields above each template are shared across the whole page — an
+agent working one ticket types the customer name once and every template they
+copy afterwards is already filled. Copy warns before handing over text that still
+has markers in it.
+
+Values live in `sessionStorage` (they contain customer details) and are dropped
+when the browser session ends. Pins and recents live in `localStorage`, keyed per
+agent.
