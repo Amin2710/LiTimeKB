@@ -50,7 +50,13 @@ function describe(token: string): Placeholder {
     .map((o) => o.trim())
     .filter(Boolean);
 
-  if (options.length > 1) {
+  // A choice offers prose the agent picks between ("refund" / "replacement"),
+  // and the chosen word is what gets sent. SCREAMING_CASE alternatives are
+  // marker names rather than prose — offering them would paste the literal
+  // "ORDER_NUMBER" into a customer's email — so they fall through to a field.
+  const isPickableProse = !options.every((o) => /^[A-Z][A-Z0-9_]*$/.test(o));
+
+  if (options.length > 1 && isPickableProse) {
     // "refund or replacement" and "refund / replacement" must land on the same
     // key so a choice made on one template carries to the next.
     const canonical = [...options].map((o) => o.toLowerCase()).sort();
@@ -63,12 +69,33 @@ function describe(token: string): Placeholder {
   }
 
   const lower = inner.toLowerCase();
-  if (lower.includes('name')) return { key: 'name', label: 'Customer name', kind: 'text' };
+
+  // Money markers keep their own keys: the fee a customer pays to return an
+  // item and the compensation we offer to keep one are opposite numbers that
+  // must never pre-fill each other.
+  if (lower.includes('fee')) {
+    return { key: slug(inner), label: titleCase(inner.replace(/_/g, ' ')), kind: 'amount' };
+  }
+  if (lower.includes('amount')) return { key: 'amount', label: 'Amount', kind: 'amount' };
+
+  // Either identifier is acceptable here, so this is one field rather than a
+  // pick between two — and it must not collapse onto the plain order key.
+  if (lower.includes('order') && lower.includes('tracking')) {
+    return { key: 'order-or-tracking', label: 'Order or tracking number', kind: 'text' };
+  }
+
+  // `product` is tested before `name`: [PRODUCT_NAME] contains both, and
+  // matching it as the customer's name renders "we no longer produce <name>".
   if (lower.includes('product')) return { key: 'product', label: 'Product', kind: 'text' };
+  if (lower.includes('name')) return { key: 'name', label: 'Customer name', kind: 'text' };
   if (lower.includes('order')) return { key: 'order', label: 'Order number', kind: 'text' };
   if (lower.includes('tracking')) return { key: 'tracking', label: 'Tracking number', kind: 'text' };
 
-  return { key: slug(inner) || 'value', label: titleCase(inner), kind: 'text' };
+  return {
+    key: slug(inner) || 'value',
+    label: titleCase(inner.replace(/_/g, ' ')),
+    kind: 'text',
+  };
 }
 
 /**
