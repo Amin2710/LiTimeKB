@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import ThemeToggle from './ThemeToggle';
+import SignatureButton from './SignatureButton';
 import { useCaseStats } from './CaseStatsProvider';
 import { useCommandPalette } from '@/components/search/CommandPalette';
 
@@ -118,6 +119,7 @@ function NavInner() {
           <kbd className="hidden sm:inline text-[10px] font-sans">⌘K</kbd>
         </button>
         <ThemeToggle />
+        {session?.user && <SignatureButton />}
         {session?.user ? (
           <Button
             variant="ghost"

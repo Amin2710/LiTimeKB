@@ -11,6 +11,8 @@ import { logSearchMiss } from '@/lib/actions';
 import { useFavorites } from '@/components/layout/FavoritesProvider';
 import { usePlaceholderValues } from './PlaceholderProvider';
 import { applyPlaceholders, unfilledPlaceholders } from '@/lib/placeholders';
+import { useAgentSignature } from '@/components/layout/SignatureProvider';
+import { signTemplate } from '@/lib/signature';
 import { useToast } from '@/components/ui/Toast';
 
 type DataSource = Extract<EntryTab, 'kb' | 'email' | 'troubleshoot'>;
@@ -61,6 +63,7 @@ export default function AccordionView({ dataSource }: AccordionViewProps) {
 
   const { noteRecent } = useFavorites();
   const { values } = usePlaceholderValues();
+  const { signature } = useAgentSignature();
   const { toast } = useToast();
 
   const data = useMemo(() => getGroupedEntries(dataSource), [dataSource]);
@@ -161,7 +164,7 @@ export default function AccordionView({ dataSource }: AccordionViewProps) {
         toast.info('This entry has no template to copy.');
         return;
       }
-      const resolved = applyPlaceholders(entry.template, values);
+      const resolved = signTemplate(applyPlaceholders(entry.template, values), signature);
       const missing = unfilledPlaceholders(entry.template, values);
       try {
         await navigator.clipboard.writeText(resolved);
@@ -178,7 +181,7 @@ export default function AccordionView({ dataSource }: AccordionViewProps) {
         toast.error('Could not access the clipboard.');
       }
     },
-    [values, toast]
+    [values, signature, toast]
   );
 
   // Keyboard flow: the whole view is drivable without reaching for the mouse.
