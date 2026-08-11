@@ -43,30 +43,35 @@ export default function PinnedRow({ tab, onOpen }: PinnedRowProps) {
   return (
     <div className="space-y-2">
       {pinned.length > 0 && (
-        <Row label="Pinned">
-          {pinned.map((entry) => (
-            <span
-              key={entry.id}
-              className="inline-flex items-center max-w-[280px] rounded-full border border-accent-orange/40 bg-accent-orange/10 hover:border-accent-orange transition-colors"
-            >
-              <button
-                onClick={() => onOpen(entry.id)}
-                title={entry.title}
-                className="text-xs pl-2.5 py-1 text-foreground truncate"
+        // Its own bordered/shaded block, distinct from the plain Recent row
+        // below, so the templates an agent pinned on purpose don't read as
+        // just another line of chips.
+        <div className="rounded-lg border border-accent-orange/30 bg-accent-orange/[0.06] p-2.5">
+          <Row label="Pinned" icon>
+            {pinned.map((entry) => (
+              <span
+                key={entry.id}
+                className="inline-flex items-center max-w-[280px] rounded-full border border-accent-orange/40 bg-card hover:border-accent-orange transition-colors"
               >
-                {entry.title}
-              </button>
-              <button
-                onClick={() => toggleFavorite(entry.id)}
-                aria-label={`Unpin ${entry.title}`}
-                title="Unpin"
-                className="shrink-0 px-1.5 py-1 text-xs text-muted-foreground hover:text-destructive"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </Row>
+                <button
+                  onClick={() => onOpen(entry.id)}
+                  title={entry.title}
+                  className="text-xs pl-2.5 py-1 text-foreground truncate"
+                >
+                  {entry.title}
+                </button>
+                <button
+                  onClick={() => toggleFavorite(entry.id)}
+                  aria-label={`Unpin ${entry.title}`}
+                  title="Unpin"
+                  className="shrink-0 px-1.5 py-1 text-xs text-muted-foreground hover:text-destructive"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </Row>
+        </div>
       )}
 
       {recent.length > 0 && (
@@ -87,10 +92,27 @@ export default function PinnedRow({ tab, onOpen }: PinnedRowProps) {
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">
+      <span
+        className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-wide shrink-0 ${
+          icon ? 'text-accent-orange' : 'text-muted-foreground'
+        }`}
+      >
+        {icon && (
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="shrink-0">
+            <path d="M12 2a1 1 0 0 1 1 1v6.5l4.316 2.507a1 1 0 0 1 .5 1.115l-.5 2.121A1 1 0 0 1 16.35 16H13v5a1 1 0 1 1-2 0v-5H7.65a1 1 0 0 1-.966-1.257l.5-2.121a1 1 0 0 1 .5-1.115L12 9.5V3a1 1 0 0 1 1-1z" />
+          </svg>
+        )}
         {label}
       </span>
       {children}
