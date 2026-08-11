@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import {
@@ -12,9 +12,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from './ThemeProvider';
 import { useAgentSignature } from './SignatureProvider';
+import { useFavorites } from './FavoritesProvider';
 import SignatureDialog from './SignatureDialog';
 import { useCaseStats } from './CaseStatsProvider';
-import { useCommandPalette } from '@/components/search/CommandPalette';
+import { useCommandPalette, entryHref } from '@/components/search/CommandPalette';
+import { useToast } from '@/components/ui/Toast';
+import { getIndex } from '@/lib/entries';
 
 const BRANDS = [
   { label: 'LiTime', url: 'https://www.litime.com' },
@@ -40,16 +43,59 @@ function NavInner() {
   const { openPalette } = useCommandPalette();
   const { theme, setTheme } = useTheme();
   const { signature } = useAgentSignature();
+  const { favorites } = useFavorites();
+  const { toast } = useToast();
   const [signatureOpen, setSignatureOpen] = useState(false);
   const activeTab = searchParams.get('tab') || 'kb';
+  const hidden = pathname === '/' || pathname === '/change-password';
 
-  // Hide navbar on login and change-password pages
-  if (pathname === '/' || pathname === '/change-password') {
-    return null;
+  const goToTab = useCallback(
+    (tab: string) => {
+      router.push(`/dashboard?tab=${tab}`);
+    },
+    [router]
+  );
+
+  // Number-key shortcuts for the six tabs. Guarded off whenever the target is
+  // an input/textarea/contenteditable so it doesn't fire while typing a case
+  // note or a template value.
+  useEffect(() => {
+    if (hidden) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+      }
+      const index = Number(e.key) - 1;
+      if (Number.isInteger(index) && index >= 0 && index < TABS.length) {
+        e.preventDefault();
+        goToTab(TABS[index].key);
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [hidden, goToTab]);
+
+  function copyPinnedList() {
+    const index = getIndex();
+    const origin = window.location.origin;
+    const lines = favorites
+      .map((id) => index.find((e) => e.id === id))
+      .filter((e): e is NonNullable<typeof e> => Boolean(e))
+      .map((e) => `${e.title} — ${origin}${entryHref(e)}`);
+
+    if (!lines.length) return;
+
+    navigator.clipboard
+      .writeText(lines.join('\n'))
+      .then(() => toast.success('Pinned list copied — paste it anywhere to share'))
+      .catch(() => toast.error('Could not access the clipboard.'));
   }
 
-  function goToTab(tab: string) {
-    router.push(`/dashboard?tab=${tab}`);
+  // Hide navbar on login and change-password pages
+  if (hidden) {
+    return null;
   }
 
   return (
@@ -85,11 +131,12 @@ function NavInner() {
           handling by design, see the compact dropdown below), so this is
           hidden rather than left to overlap the menu button. */}
       <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-        {TABS.map((tab) => (
+        {TABS.map((tab, i) => (
           <button
             key={tab.key}
             onClick={() => goToTab(tab.key)}
             aria-current={activeTab === tab.key ? 'page' : undefined}
+            title={`${tab.label} (${i + 1})`}
             className={`relative px-3 py-1.5 min-h-[44px] text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
               activeTab === tab.key
                 ? 'bg-primary text-primary-foreground'
@@ -135,13 +182,16 @@ function NavInner() {
             </svg>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="bg-card border-border text-foreground min-w-[200px]">
-            {TABS.map((tab) => (
+            {TABS.map((tab, i) => (
               <DropdownMenuItem
                 key={tab.key}
                 onClick={() => goToTab(tab.key)}
                 className="hover:bg-accent text-sm justify-between"
               >
-                {tab.label}
+                <span className="flex items-center gap-2">
+                  <kbd className="text-[10px] font-sans text-muted-foreground">{i + 1}</kbd>
+                  {tab.label}
+                </span>
                 {tab.key === 'tracker' && overdue > 0 && (
                   <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-accent-orange text-[10px] font-bold text-white tabular-nums">
                     {overdue > 99 ? '99+' : overdue}
@@ -177,12 +227,17 @@ function NavInner() {
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="hover:bg-accent text-sm"
             >
-              Switch to {theme === 'dark' ? 'light' : 'dark'} theme
+              🌙 Switch to {theme === 'dark' ? 'light' : 'dark'} theme
             </DropdownMenuItem>
             {session?.user && (
               <DropdownMenuItem onClick={() => setSignatureOpen(true)} className="hover:bg-accent text-sm justify-between">
                 Your signature
                 {signature && <span className="text-muted-foreground truncate max-w-[70px]">{signature}</span>}
+              </DropdownMenuItem>
+            )}
+            {favorites.length > 0 && (
+              <DropdownMenuItem onClick={copyPinnedList} className="hover:bg-accent text-sm">
+                Copy pinned list ({favorites.length})
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
