@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { useToast } from '@/components/ui/Toast';
 import { usePlaceholderValues } from './PlaceholderProvider';
 import { applyPlaceholders, findPlaceholders, unfilledPlaceholders } from '@/lib/placeholders';
+import { useAgentSignature } from '@/components/layout/SignatureProvider';
+import { signTemplate } from '@/lib/signature';
 import Highlight from './Highlight';
 
 interface TemplateBlockProps {
@@ -22,11 +24,16 @@ interface TemplateBlockProps {
  */
 export default function TemplateBlock({ template, query }: TemplateBlockProps) {
   const { values, setValue } = usePlaceholderValues();
+  const { signature } = useAgentSignature();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   const placeholders = useMemo(() => findPlaceholders(template), [template]);
-  const resolved = useMemo(() => applyPlaceholders(template, values), [template, values]);
+  // Signed after substitution so the body on screen is exactly what is copied.
+  const resolved = useMemo(
+    () => signTemplate(applyPlaceholders(template, values), signature),
+    [template, values, signature]
+  );
   const unfilled = useMemo(() => unfilledPlaceholders(template, values), [template, values]);
 
   async function write(text: string) {

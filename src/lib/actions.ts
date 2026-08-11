@@ -275,3 +275,27 @@ export async function saveTheme(theme: string) {
     { onConflict: 'user_id' }
   );
 }
+
+/** The name this agent signs replies with, empty when they have not set one. */
+export async function getSignature(): Promise<string> {
+  const userId = await getUserId();
+  if (!userId) return '';
+
+  const { data } = await supabase
+    .from('user_preferences')
+    .select('signature_name')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  return data?.signature_name ?? '';
+}
+
+export async function saveSignature(name: string) {
+  const userId = await getUserId();
+  if (!userId) return;
+
+  await supabase.from('user_preferences').upsert(
+    { user_id: userId, signature_name: name.trim() },
+    { onConflict: 'user_id' }
+  );
+}
