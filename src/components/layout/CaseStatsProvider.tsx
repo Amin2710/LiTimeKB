@@ -6,12 +6,15 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { getCaseCounts } from '@/lib/actions';
 import { countStats, type StagedCase } from '@/lib/sla';
+import { useToast } from '@/components/ui/Toast';
 
 interface CaseStats {
   active: number;
@@ -47,19 +50,35 @@ export function useCaseStats() {
 export default function CaseStatsProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
+  const router = useRouter();
+  const { toast } = useToast();
   const [loaded, setLoaded] = useState<CaseStats>(ZERO);
 
   // Signed out means zero without having to clear stored state.
   const stats = userId ? loaded : ZERO;
 
+  // The badge in the navbar is easy to miss while working another tab, so the
+  // first refresh after signing in also surfaces a toast — once per session,
+  // not on every periodic re-check, so it doesn't nag every 5 minutes.
+  const notifiedFor = useRef<string | null>(null);
+
   const refresh = useCallback(() => {
     if (!userId) return;
     getCaseCounts()
-      .then(setLoaded)
+      .then((counts) => {
+        setLoaded(counts);
+        if (counts.overdue > 0 && notifiedFor.current !== userId) {
+          notifiedFor.current = userId;
+          toast.info(
+            `${counts.overdue} case${counts.overdue > 1 ? 's are' : ' is'} overdue for follow-up`,
+            { label: 'View', onClick: () => router.push('/dashboard?tab=tracker') }
+          );
+        }
+      })
       .catch(() => {
         // Badge is advisory; leave the last known counts in place.
       });
-  }, [userId]);
+  }, [userId, toast, router]);
 
   useEffect(() => {
     refresh();

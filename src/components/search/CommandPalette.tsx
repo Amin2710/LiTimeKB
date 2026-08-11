@@ -11,12 +11,16 @@ import {
   type ReactNode,
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { getIndex, searchIndex, tabLabel, type IndexEntry } from '@/lib/entries';
 import { logSearchMiss } from '@/lib/actions';
 import { useFavorites } from '@/components/layout/FavoritesProvider';
+import { useStoredValue } from '@/lib/useStoredValue';
 
 /** Routes where there is nothing to search yet. */
 const HIDDEN_ON = ['/', '/change-password'];
+
+const MAX_RECENT_SEARCHES = 6;
 
 export function entryHref(entry: Pick<IndexEntry, 'tab' | 'id'>): string {
   return `/dashboard?tab=${entry.tab}&e=${encodeURIComponent(entry.id)}`;
@@ -57,7 +61,14 @@ interface CommandPaletteProps {
 function CommandPalette({ open, setOpen }: CommandPaletteProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session } = useSession();
   const { favorites, noteRecent } = useFavorites();
+  const userKey = session?.user?.id ?? 'anon';
+  const [recentSearches, setRecentSearches] = useStoredValue<string[]>(
+    'local',
+    `litime-recent-searches:${userKey}`,
+    []
+  );
 
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -83,13 +94,28 @@ function CommandPalette({ open, setOpen }: CommandPaletteProps) {
     setActive(0);
   }, [setOpen]);
 
+  const noteSearch = useCallback(
+    (term: string) => {
+      const trimmed = term.trim();
+      if (!trimmed) return;
+      setRecentSearches(
+        [trimmed, ...recentSearches.filter((s) => s.toLowerCase() !== trimmed.toLowerCase())].slice(
+          0,
+          MAX_RECENT_SEARCHES
+        )
+      );
+    },
+    [recentSearches, setRecentSearches]
+  );
+
   const go = useCallback(
     (entry: IndexEntry) => {
       noteRecent(entry.id);
+      if (query.trim()) noteSearch(query);
       router.push(entryHref(entry));
       close();
     },
-    [router, noteRecent, close]
+    [router, noteRecent, noteSearch, query, close]
   );
 
   // Global open shortcut. Deliberately also fires while an input has focus.
@@ -194,6 +220,36 @@ function CommandPalette({ open, setOpen }: CommandPaletteProps) {
             Esc
           </kbd>
         </div>
+
+        {!query.trim() && recentSearches.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap px-3 py-2 border-b border-border">
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">
+              Recent
+            </span>
+            {recentSearches.map((term) => (
+              <span
+                key={term}
+                className="inline-flex items-center max-w-[200px] rounded-full border border-border bg-card hover:border-primary transition-colors"
+              >
+                <button
+                  onClick={() => setQuery(term)}
+                  title={term}
+                  className="text-xs pl-2.5 py-1 text-foreground truncate"
+                >
+                  {term}
+                </button>
+                <button
+                  onClick={() => setRecentSearches(recentSearches.filter((s) => s !== term))}
+                  aria-label={`Remove "${term}" from recent searches`}
+                  title="Remove"
+                  className="shrink-0 px-1.5 py-1 text-xs text-muted-foreground hover:text-destructive"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
 
         <ul
           ref={listRef}
