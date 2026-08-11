@@ -1,17 +1,18 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import ThemeToggle from './ThemeToggle';
-import SignatureButton from './SignatureButton';
+import { useTheme } from './ThemeProvider';
+import { useAgentSignature } from './SignatureProvider';
+import SignatureDialog from './SignatureDialog';
 import { useCaseStats } from './CaseStatsProvider';
 import { useCommandPalette } from '@/components/search/CommandPalette';
 
@@ -37,6 +38,9 @@ function NavInner() {
   const { data: session } = useSession();
   const { overdue } = useCaseStats();
   const { openPalette } = useCommandPalette();
+  const { theme, setTheme } = useTheme();
+  const { signature } = useAgentSignature();
+  const [signatureOpen, setSignatureOpen] = useState(false);
   const activeTab = searchParams.get('tab') || 'kb';
 
   // Hide navbar on login and change-password pages
@@ -75,8 +79,10 @@ function NavInner() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Center: Tab navigation */}
-      <nav className="flex items-center gap-0.5 overflow-x-auto flex-1 justify-center">
+      {/* Center: Tab navigation. Six fixed tabs with no more planned, so this
+          is allowed to assume it fits rather than defend against overflow;
+          the right side is one menu button precisely to keep it that way. */}
+      <nav className="flex items-center gap-1 flex-1 justify-center">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -104,41 +110,54 @@ function NavInner() {
         ))}
       </nav>
 
-      {/* Right: Theme toggle + Sign in/out */}
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          onClick={openPalette}
-          title="Search everything (Ctrl+K)"
-          aria-label="Search everything"
-          className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
-        >
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-          <kbd className="hidden sm:inline text-[10px] font-sans">⌘K</kbd>
-        </button>
-        <ThemeToggle />
-        {session?.user && <SignatureButton />}
-        {session?.user ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => signOut({ callbackUrl: '/' })}
-            className="text-muted-foreground hover:text-destructive hover:bg-accent text-xs min-h-[44px]"
+      {/* Right: one menu for search / theme / signature / session — kept to a
+          single control so the tab row keeps the width it needs. */}
+      <div className="shrink-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            title="Search, theme, signature and account"
+            aria-label="Menu"
+            className="inline-flex items-center justify-center w-11 h-11 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
           >
-            Sign Out
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/')}
-            className="text-muted-foreground hover:text-foreground hover:bg-accent text-xs min-h-[44px]"
-          >
-            Sign In
-          </Button>
-        )}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="12" cy="5" r="1" />
+              <circle cx="12" cy="19" r="1" />
+            </svg>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-card border-border text-foreground min-w-[190px]">
+            <DropdownMenuItem onClick={openPalette} className="hover:bg-accent text-sm justify-between">
+              Search everything
+              <kbd className="text-[10px] font-sans text-muted-foreground">⌘K</kbd>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="hover:bg-accent text-sm"
+            >
+              Switch to {theme === 'dark' ? 'light' : 'dark'} theme
+            </DropdownMenuItem>
+            {session?.user && (
+              <DropdownMenuItem onClick={() => setSignatureOpen(true)} className="hover:bg-accent text-sm justify-between">
+                Your signature
+                {signature && <span className="text-muted-foreground truncate max-w-[70px]">{signature}</span>}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            {session?.user ? (
+              <DropdownMenuItem
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="hover:bg-accent text-sm text-destructive"
+              >
+                Sign Out
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => router.push('/')} className="hover:bg-accent text-sm">
+                Sign In
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <SignatureDialog open={signatureOpen} onClose={() => setSignatureOpen(false)} />
       </div>
     </div>
   );
@@ -146,7 +165,7 @@ function NavInner() {
 
 export default function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm overflow-x-hidden">
       <Suspense fallback={<div className="max-w-[1180px] mx-auto px-[22px] flex items-center h-14 border-b border-border bg-background/95" />}>
         <NavInner />
       </Suspense>
