@@ -79,10 +79,12 @@ function NavInner() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Center: Tab navigation. Six fixed tabs with no more planned, so this
-          is allowed to assume it fits rather than defend against overflow;
-          the right side is one menu button precisely to keep it that way. */}
-      <nav className="flex items-center gap-1 flex-1 justify-center">
+      {/* Center: Tab navigation. Six fixed tabs, laid out flat above 1024px
+          where they're measured to fit with room to spare. Below that they'd
+          get clipped with nothing to shrink into (the row has no overflow
+          handling by design, see the compact dropdown below), so this is
+          hidden rather than left to overlap the menu button. */}
+      <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -109,6 +111,47 @@ function NavInner() {
           </button>
         ))}
       </nav>
+
+      {/* Below 1024px: the flat row above is hidden, so this dropdown is the
+          only way to switch tabs. It has to exist or four of six tabs become
+          unreachable with no scrollbar and nothing to click. */}
+      <div className="flex lg:hidden flex-1 min-w-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex items-center gap-1.5 w-full min-w-0 px-3 py-1.5 min-h-[44px] text-xs font-medium rounded-md border border-border text-foreground hover:border-primary transition-colors">
+            <span className="truncate flex-1 text-left">
+              {TABS.find((tab) => tab.key === activeTab)?.label ?? 'Menu'}
+            </span>
+            {overdue > 0 && (
+              <span
+                title={`${overdue} case${overdue > 1 ? 's' : ''} need follow-up`}
+                className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-accent-orange text-[10px] font-bold text-white tabular-nums shrink-0"
+              >
+                {overdue > 99 ? '99+' : overdue}
+                <span className="sr-only"> cases need follow-up</span>
+              </span>
+            )}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="bg-card border-border text-foreground min-w-[200px]">
+            {TABS.map((tab) => (
+              <DropdownMenuItem
+                key={tab.key}
+                onClick={() => goToTab(tab.key)}
+                className="hover:bg-accent text-sm justify-between"
+              >
+                {tab.label}
+                {tab.key === 'tracker' && overdue > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-accent-orange text-[10px] font-bold text-white tabular-nums">
+                    {overdue > 99 ? '99+' : overdue}
+                  </span>
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {/* Right: one menu for search / theme / signature / session — kept to a
           single control so the tab row keeps the width it needs. */}
