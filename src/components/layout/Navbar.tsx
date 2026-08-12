@@ -224,10 +224,26 @@ function NavInner() {
               <kbd className="text-[10px] font-sans text-muted-foreground">⌘K</kbd>
             </DropdownMenuItem>
             <DropdownMenuItem
+              closeOnClick={false}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="hover:bg-accent text-sm"
+              aria-label={`Theme: ${theme === 'dark' ? 'dark' : 'light'} — click to switch`}
+              className="hover:bg-accent text-sm justify-between"
             >
-              🌙 Switch to {theme === 'dark' ? 'light' : 'dark'} theme
+              Theme
+              <span
+                aria-hidden="true"
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+                  theme === 'dark' ? 'bg-primary' : 'bg-border'
+                }`}
+              >
+                <span
+                  className={`inline-flex h-4 w-4 items-center justify-center rounded-full bg-background text-[10px] leading-none shadow transition-transform ${
+                    theme === 'dark' ? 'translate-x-[18px]' : 'translate-x-0.5'
+                  }`}
+                >
+                  {theme === 'dark' ? '🌙' : '☀️'}
+                </span>
+              </span>
             </DropdownMenuItem>
             {session?.user && (
               <DropdownMenuItem onClick={() => setSignatureOpen(true)} className="hover:bg-accent text-sm justify-between">
