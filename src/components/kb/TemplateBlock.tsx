@@ -23,7 +23,7 @@ interface TemplateBlockProps {
  * silently while markers are still outstanding.
  */
 export default function TemplateBlock({ template, query }: TemplateBlockProps) {
-  const { values, setValue } = usePlaceholderValues();
+  const { values, setValue, clearKeys } = usePlaceholderValues();
   const { signature } = useAgentSignature();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -48,16 +48,27 @@ export default function TemplateBlock({ template, query }: TemplateBlockProps) {
     }
   }
 
+  // Copying is treated as "done with this reply" — the blanks this template
+  // used are cleared so stale customer details (name, order number, amount)
+  // can't carry into the next ticket. Only this template's own keys, since
+  // the values are deliberately shared across templates for the same ticket.
+  async function copyAndClear() {
+    const ok = await write(resolved);
+    if (ok && placeholders.length > 0) {
+      clearKeys(placeholders.map((p) => p.key));
+    }
+  }
+
   async function handleCopy() {
     if (unfilled.length > 0) {
       const names = unfilled.map((p) => p.label).join(', ');
       toast.info(
         `${unfilled.length} placeholder${unfilled.length > 1 ? 's' : ''} still unfilled: ${names}`,
-        { label: 'Copy anyway', onClick: () => void write(resolved) }
+        { label: 'Copy anyway', onClick: () => void copyAndClear() }
       );
       return;
     }
-    await write(resolved);
+    await copyAndClear();
   }
 
   return (

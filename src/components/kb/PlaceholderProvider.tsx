@@ -11,6 +11,8 @@ const EMPTY: Record<string, string> = {};
 interface PlaceholderContextValue {
   values: Record<string, string>;
   setValue: (key: string, value: string) => void;
+  /** Clears only the given keys, leaving other templates' filled-in values alone. */
+  clearKeys: (keys: string[]) => void;
   clearAll: () => void;
   hasAny: boolean;
 }
@@ -18,6 +20,7 @@ interface PlaceholderContextValue {
 const PlaceholderContext = createContext<PlaceholderContextValue>({
   values: EMPTY,
   setValue: () => {},
+  clearKeys: () => {},
   clearAll: () => {},
   hasAny: false,
 });
@@ -48,16 +51,33 @@ export default function PlaceholderProvider({ children }: { children: ReactNode 
     [values, setValues]
   );
 
+  const clearKeys = useCallback(
+    (keys: string[]) => {
+      if (!keys.length) return;
+      const next = { ...values };
+      let changed = false;
+      for (const key of keys) {
+        if (key in next) {
+          delete next[key];
+          changed = true;
+        }
+      }
+      if (changed) setValues(next);
+    },
+    [values, setValues]
+  );
+
   const clearAll = useCallback(() => setValues({}), [setValues]);
 
   const value = useMemo<PlaceholderContextValue>(
     () => ({
       values,
       setValue,
+      clearKeys,
       clearAll,
       hasAny: Object.values(values).some((v) => v.trim()),
     }),
-    [values, setValue, clearAll]
+    [values, setValue, clearKeys, clearAll]
   );
 
   return <PlaceholderContext.Provider value={value}>{children}</PlaceholderContext.Provider>;
