@@ -13,6 +13,7 @@ import {
 import { useTheme } from './ThemeProvider';
 import { useAgentSignature } from './SignatureProvider';
 import { useFavorites } from './FavoritesProvider';
+import { usePlaceholderValues } from '@/components/kb/PlaceholderProvider';
 import SignatureDialog from './SignatureDialog';
 import { useCaseStats } from './CaseStatsProvider';
 import { useCommandPalette, entryHref } from '@/components/search/CommandPalette';
@@ -44,6 +45,7 @@ function NavInner() {
   const { theme, setTheme } = useTheme();
   const { signature } = useAgentSignature();
   const { favorites } = useFavorites();
+  const { hasAny: hasFilledFields, clearAll: clearAllFields } = usePlaceholderValues();
   const { toast } = useToast();
   const [signatureOpen, setSignatureOpen] = useState(false);
   const activeTab = searchParams.get('tab') || 'kb';
@@ -91,6 +93,11 @@ function NavInner() {
       .writeText(lines.join('\n'))
       .then(() => toast.success('Pinned list copied — paste it anywhere to share'))
       .catch(() => toast.error('Could not access the clipboard.'));
+  }
+
+  function clearFilledFields() {
+    clearAllFields();
+    toast.success('Template fields cleared');
   }
 
   // Hide navbar on login and change-password pages
@@ -254,6 +261,11 @@ function NavInner() {
             {favorites.length > 0 && (
               <DropdownMenuItem onClick={copyPinnedList} className="hover:bg-accent text-sm">
                 Copy pinned list ({favorites.length})
+              </DropdownMenuItem>
+            )}
+            {hasFilledFields && (
+              <DropdownMenuItem onClick={clearFilledFields} className="hover:bg-accent text-sm">
+                Clear template fields
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
