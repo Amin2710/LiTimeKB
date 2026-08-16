@@ -69,6 +69,34 @@ export async function createCase(fields: {
   return null;
 }
 
+/**
+ * Re-inserts a case exactly as it was, for undoing a delete. createCase()
+ * can't be reused here: it always resets stage to "Label requested" and
+ * wipes history, which turns "Undo" on a case that had progressed into a
+ * silent downgrade rather than a real restore.
+ */
+export async function restoreCase(data: CaseData): Promise<{ error: string } | null> {
+  const userId = await getUserId();
+  if (!userId) return { error: 'Not authenticated' };
+
+  const { error } = await supabase.from('cases').insert({
+    id: data.id,
+    user_id: userId,
+    order_number: data.order_number,
+    email: data.email,
+    platform: data.platform,
+    type: data.type,
+    note: data.note,
+    stage: data.stage,
+    stage_since: data.stage_since,
+    created: data.created,
+    history: data.history,
+  });
+
+  if (error) return { error: error.message };
+  return null;
+}
+
 export async function bulkImportCases(imported: Array<{
   order_number: string;
   email: string;

@@ -243,7 +243,7 @@ export const KB: KBData = {
       "sub": "Orders & Logistics",
       "issue": "Out of stock — propose replacement product",
       "summary": "Explain stock/quality issue; propose swapping to another product; update SKU in ERP if agreed.",
-      "template": "Hi,\n\nSorry to bother you. Our warehouse flagged a problem while processing your order — the remaining stock has surface scratches and they're not confident shipping it.\n\nWe've asked the team to retrieve the parcel. As the product is currently out of stock, would it be OK to replace it with XXX?\n\nLet us know what you think.\n\nBest regards,\nLitime",
+      "template": "Hi,\n\nSorry to bother you. Our warehouse flagged a problem while processing your order — the remaining stock has surface scratches and they're not confident shipping it.\n\nWe've asked the team to retrieve the parcel. As the product is currently out of stock, would it be OK to replace it with [PRODUCT]?\n\nLet us know what you think.\n\nBest regards,\nLitime",
       "note": "",
       "link": ""
     },

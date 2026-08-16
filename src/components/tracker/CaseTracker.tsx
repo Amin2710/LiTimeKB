@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { getCases, createCase, updateCaseStage, updateCaseNote, deleteCase, upsertCasesByOrder } from '@/lib/actions';
+import { getCases, createCase, restoreCase, updateCaseStage, updateCaseNote, deleteCase, upsertCasesByOrder } from '@/lib/actions';
 import * as XLSX from 'xlsx';
 import type { CaseData } from '@/lib/actions';
 import { useToast } from '@/components/ui/Toast';
@@ -40,7 +40,6 @@ export default function CaseTracker() {
   const [query, setQuery] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
-  const recentlyDeleted = useRef<CaseData | null>(null);
   const { toast } = useToast();
 
   // Ages are shown relative to now, so the clock has to advance on its own —
@@ -149,28 +148,26 @@ export default function CaseTracker() {
   async function handleDelete(caseId: string) {
     const target = cases.find(c => c.id === caseId);
     if (!target) return;
-    recentlyDeleted.current = target;
     setCases(prev => prev.filter(c => c.id !== caseId));
 
+    // `target` is captured directly in this closure rather than a shared ref,
+    // so deleting a second case before clicking Undo on this toast can't make
+    // this toast restore the wrong one.
+    let undone = false;
     toast.info('Case removed', {
       label: 'Undo',
       onClick: async () => {
-        const restored = recentlyDeleted.current;
-        recentlyDeleted.current = null;
-        if (restored) {
-          setCases(prev => [...prev, restored]);
-          const result = await createCase({
-            order_number: restored.order_number,
-            email: restored.email,
-            platform: restored.platform,
-            type: restored.type,
-            note: restored.note,
-          });
-          if (result?.error) {
-            toast.error('Failed to restore case: ' + result.error);
-          }
-          await loadCases();
+        if (undone) return;
+        undone = true;
+        setCases(prev => [...prev, target]);
+        // restoreCase (not createCase) puts the case back exactly as it was —
+        // same id, stage, and history — instead of resetting it to a brand
+        // new case at "Label requested".
+        const result = await restoreCase(target);
+        if (result?.error) {
+          toast.error('Failed to restore case: ' + result.error);
         }
+        await loadCases();
       },
     });
 
