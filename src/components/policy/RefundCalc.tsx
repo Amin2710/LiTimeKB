@@ -16,17 +16,20 @@ const labelClass = 'block text-xs text-muted-foreground';
 
 /**
  * Refund math differs by platform, so this is three separate calculators
- * behind one switcher rather than one calculator with a checkbox:
- * Shopify refunds 6% of the order total, Amazon refunds 6% of the item
- * subtotal (a different base number, not just a different label), and a
- * price match has to re-derive the order's own tax rate before it can
- * apply it to the new price.
+ * behind one switcher rather than one calculator with a checkbox: Shopify
+ * refunds a discount % of the order total, Amazon refunds a discount % of
+ * the item subtotal (a different base number, not just a different
+ * label), and a price match has to re-derive the order's own tax rate
+ * before it can apply it to the new price. The discount defaults to 6%
+ * (the common case) but is editable — it isn't fixed at 6% for every case.
  */
 export default function RefundCalc() {
   const [profile, setProfile] = useState<Profile>('shopify');
 
   const [shopifyTotal, setShopifyTotal] = useState('');
+  const [shopifyPercent, setShopifyPercent] = useState('6');
   const [amazonSubtotal, setAmazonSubtotal] = useState('');
+  const [amazonPercent, setAmazonPercent] = useState('6');
 
   const [pmTotal, setPmTotal] = useState('');
   const [pmOriginal, setPmOriginal] = useState('');
@@ -34,10 +37,12 @@ export default function RefundCalc() {
   const [pmNew, setPmNew] = useState('');
 
   const shopifyTotalNum = parseFloat(shopifyTotal || '0');
-  const shopifyRefund = shopifyTotalNum * 0.06;
+  const shopifyPercentNum = parseFloat(shopifyPercent || '0');
+  const shopifyRefund = shopifyTotalNum * (shopifyPercentNum / 100);
 
   const amazonSubtotalNum = parseFloat(amazonSubtotal || '0');
-  const amazonRefund = amazonSubtotalNum * 0.06;
+  const amazonPercentNum = parseFloat(amazonPercent || '0');
+  const amazonRefund = amazonSubtotalNum * (amazonPercentNum / 100);
 
   const pmTotalNum = parseFloat(pmTotal || '0');
   const pmOriginalNum = parseFloat(pmOriginal || '0');
@@ -74,32 +79,56 @@ export default function RefundCalc() {
 
       {profile === 'shopify' && (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">Refund = order total &times; 6%</p>
-          <div className="space-y-1">
-            <label className={labelClass}>Order Total ($)</label>
-            <input
-              type="number"
-              placeholder="e.g. 191.33"
-              value={shopifyTotal}
-              onChange={(e) => setShopifyTotal(e.target.value)}
-              className={inputClass}
-            />
+          <p className="text-xs text-muted-foreground">Refund = order total &times; discount %</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className={labelClass}>Order Total ($)</label>
+              <input
+                type="number"
+                placeholder="e.g. 191.33"
+                value={shopifyTotal}
+                onChange={(e) => setShopifyTotal(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className={labelClass}>Discount (%)</label>
+              <input
+                type="number"
+                placeholder="e.g. 6"
+                value={shopifyPercent}
+                onChange={(e) => setShopifyPercent(e.target.value)}
+                className={inputClass}
+              />
+            </div>
           </div>
         </div>
       )}
 
       {profile === 'amazon' && (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">Refund = item subtotal &times; 6%</p>
-          <div className="space-y-1">
-            <label className={labelClass}>Item Subtotal ($)</label>
-            <input
-              type="number"
-              placeholder="e.g. 219.88"
-              value={amazonSubtotal}
-              onChange={(e) => setAmazonSubtotal(e.target.value)}
-              className={inputClass}
-            />
+          <p className="text-xs text-muted-foreground">Refund = item subtotal &times; discount %</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className={labelClass}>Item Subtotal ($)</label>
+              <input
+                type="number"
+                placeholder="e.g. 219.88"
+                value={amazonSubtotal}
+                onChange={(e) => setAmazonSubtotal(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className={labelClass}>Discount (%)</label>
+              <input
+                type="number"
+                placeholder="e.g. 6"
+                value={amazonPercent}
+                onChange={(e) => setAmazonPercent(e.target.value)}
+                className={inputClass}
+              />
+            </div>
           </div>
         </div>
       )}
