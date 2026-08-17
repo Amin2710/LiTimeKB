@@ -2,7 +2,7 @@
 
 import CollapsibleSection from './CollapsibleSection';
 import PolicyGrid from './PolicyGrid';
-import OrderRefundCalc from './OrderRefundCalc';
+import RefundCalc from './RefundCalc';
 import DepreciationCalc from './DepreciationCalc';
 import PriceMatchCalc from './PriceMatchCalc';
 import ShippingFees from './ShippingFees';
@@ -18,8 +18,8 @@ export default function PolicyView() {
         <PolicyGrid />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Refund Calculator (DataX Mirror)">
-        <OrderRefundCalc />
+      <CollapsibleSection title="Refund Calculator">
+        <RefundCalc />
       </CollapsibleSection>
 
       <CollapsibleSection title="Depreciation Calculator">
