@@ -377,13 +377,18 @@ function ExtraPanel({
   holdsTarget?: boolean;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  // Read into the initial `open` state directly, not just handled by the
+  // effect below — a page loaded straight from a search deep link already
+  // has holdsTarget true on this component's very first render, which would
+  // make lastHeldTarget's own lazy init equal holdsTarget immediately (both
+  // true from the start) and the `!==` check below would never fire.
+  const [open, setOpen] = useState(Boolean(holdsTarget));
   const contentRef = useRef<HTMLDivElement>(null);
   const icon = TONE_ICONS[tone];
 
-  // Same pattern as CategoryPanel: a search result can target something
-  // inside this panel even while it's collapsed, so it has to open on its
-  // own rather than staying shut until an agent happens to click it.
+  // Covers a target that arrives after this panel has already mounted
+  // (e.g. clicking a pinned chip while already on the page) — the case the
+  // initial-state read above doesn't cover.
   const [lastHeldTarget, setLastHeldTarget] = useState(Boolean(holdsTarget));
   if (Boolean(holdsTarget) !== lastHeldTarget) {
     setLastHeldTarget(Boolean(holdsTarget));

@@ -26,13 +26,22 @@ export default function CategoryPanel({
   onToggleEntry,
   focusedId,
 }: CategoryPanelProps) {
-  const [open, setOpen] = useState(defaultOpen || false);
+  // A card can be targeted from outside the panel (deep link, keyboard cursor,
+  // pinned row), so the panel has to open to reveal it. holdsTarget is read
+  // into the initial `open` state directly — not just handled by the effect
+  // below — because a page loaded straight from a search deep link already
+  // has the target present on this component's very first render. In that
+  // case lastHeldTarget's own lazy init would equal holdsTarget immediately
+  // (both true from the start), so the `!==` check below would never fire
+  // and the panel would silently stay collapsed around an "open" card.
+  const holdsTarget = entries.some((e) => e.id === focusedId || openIds.has(e.id));
+  const [open, setOpen] = useState(defaultOpen || holdsTarget || false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // A card can be targeted from outside the panel (deep link, keyboard cursor,
-  // pinned row), so the panel has to open to reveal it. Adjusting during render
-  // on the transition keeps the panel collapsible once the target moves away.
-  const holdsTarget = entries.some((e) => e.id === focusedId || openIds.has(e.id));
+  // Adjusting during render on the transition keeps the panel collapsible
+  // once the target moves away, for a target that arrives after this panel
+  // has already mounted (e.g. clicking a pinned chip while already on the
+  // page) — the case the initial-state read above doesn't cover.
   const [lastHeldTarget, setLastHeldTarget] = useState(holdsTarget);
   if (holdsTarget !== lastHeldTarget) {
     setLastHeldTarget(holdsTarget);
