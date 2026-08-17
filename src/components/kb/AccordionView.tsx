@@ -6,7 +6,7 @@ import CategoryPanel from './CategoryPanel';
 import BatteryDimensions from './BatteryDimensions';
 import ErrorCodesView from './ErrorCodesView';
 import PinnedRow from './PinnedRow';
-import { getGroupedEntries, type EntryTab, type IndexEntry } from '@/lib/entries';
+import { getEntryById, getGroupedEntries, type EntryTab, type IndexEntry } from '@/lib/entries';
 import { logSearchMiss } from '@/lib/actions';
 import { useFavorites } from '@/components/layout/FavoritesProvider';
 import { usePlaceholderValues } from './PlaceholderProvider';
@@ -117,6 +117,15 @@ export default function AccordionView({ dataSource }: AccordionViewProps) {
     () => (deepLinkId ? visibleEntries.findIndex((e) => e.id === deepLinkId) : -1),
     [deepLinkId, visibleEntries]
   );
+
+  // Error codes live outside the normal card list (kind !== 'entry'), so a
+  // search result pointing at one needs to be routed to the Error Codes
+  // panel by hand instead of via the openIds mechanism below.
+  const errorCodeTargetId = useMemo(() => {
+    if (!deepLinkId) return undefined;
+    const entry = getEntryById(deepLinkId);
+    return entry?.kind === 'errorcode' ? deepLinkId : undefined;
+  }, [deepLinkId]);
 
   // The deep-linked card starts focused so a shared link visibly lands
   // somewhere; arrowing takes over from there. Falling back also keeps the
@@ -310,8 +319,14 @@ export default function AccordionView({ dataSource }: AccordionViewProps) {
               <BatteryDimensions />
             </ExtraPanel>
           ) : category === EC_CATEGORY ? (
-            <ExtraPanel key={EC_CATEGORY} title="Error Codes" count={13} tone="destructive">
-              <ErrorCodesView />
+            <ExtraPanel
+              key={EC_CATEGORY}
+              title="Error Codes"
+              count={13}
+              tone="destructive"
+              holdsTarget={Boolean(errorCodeTargetId)}
+            >
+              <ErrorCodesView targetId={errorCodeTargetId} />
             </ExtraPanel>
           ) : (
             <CategoryPanel
@@ -352,16 +367,28 @@ function ExtraPanel({
   title,
   count,
   tone,
+  holdsTarget,
   children,
 }: {
   title: string;
   count: number;
   tone: keyof typeof TONE_ICONS;
+  /** True when a search deep link points at something inside this panel. */
+  holdsTarget?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const icon = TONE_ICONS[tone];
+
+  // Same pattern as CategoryPanel: a search result can target something
+  // inside this panel even while it's collapsed, so it has to open on its
+  // own rather than staying shut until an agent happens to click it.
+  const [lastHeldTarget, setLastHeldTarget] = useState(Boolean(holdsTarget));
+  if (Boolean(holdsTarget) !== lastHeldTarget) {
+    setLastHeldTarget(Boolean(holdsTarget));
+    if (holdsTarget) setOpen(true);
+  }
 
   useEffect(() => {
     if (open && contentRef.current) {
